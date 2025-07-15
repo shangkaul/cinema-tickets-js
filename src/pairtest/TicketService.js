@@ -17,6 +17,7 @@ import prices from './config/prices.js';
 import ReqAgg from './helpers/reqAgg.js';
 import BusinessRuleValidator from './helpers/BusinessRuleValidator.js';
 import PriceCalculator from './helpers/priceCalculator.js';
+import SeatCalc from './helpers/SeatCalc.js';
 
 export default class TicketService {
   /**
@@ -39,24 +40,14 @@ export default class TicketService {
   // Get aggregated ticket counts
   const ticketCounts = ReqAgg.agg(ticketTypeRequests);
 
-  
-  const adultCount = ticketCounts.adult;
-  const chCount = ticketCounts.child;
-  const infCount = ticketCounts.infant;
-
-
-  // Check for valid account IDs
-  if (adultCount<1)
-    throw new InvalidPurchaseException("Minimum 1 adult is required.");
-
   // Validate business rules
   BusinessRuleValidator.validate(ticketCounts);
 
-
+ // Calculate total cost and number of seats
   const amt= PriceCalculator.totalCost(ticketCounts);
-  const seats= adultCount + chCount;
+  const seats= SeatCalc.totalSeats(ticketCounts);
   
-  // Call ticket payment and seat reservation services.
+  // Call ticket payment and seat reservation services
   new TicketPaymentService().makePayment(accountId, amt);
   new SeatReservationService().reserveSeat(accountId, seats);
 

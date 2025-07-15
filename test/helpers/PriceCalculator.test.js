@@ -7,7 +7,7 @@
 import PriceCalculator from "../../src/pairtest/helpers/priceCalculator";
 
 
-describe('PricingCalculator.totalCost', () => {
+describe('PriceCalculator.totalCost', () => {
   it('returns 0 when all counts are zero', () => {
     const counts = { adult: 0, child: 0, infant: 0 };
     const cost = PriceCalculator.totalCost(counts);
