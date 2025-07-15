@@ -14,6 +14,7 @@ import TicketPaymentService from '../thirdparty/paymentgateway/TicketPaymentServ
 import SeatReservationService from '../thirdparty/seatbooking/SeatReservationService.js';
 
 import prices from './config/prices.js';
+import ReqAgg from './helpers/reqAgg.js';
 
 export default class TicketService {
   /**
@@ -28,18 +29,18 @@ export default class TicketService {
   * @param {...TicketTypeRequest} ticketTypeRequests - One or more ticket type requests specifying the type and quantity of tickets.
   * @throws {InvalidPurchaseException} If the purchase request is invalid according to business rules.
   */
+  // Validate accountId
     if ((!Number.isInteger(accountId)) || (accountId <= 0)){
       throw new InvalidPurchaseException('Invalid account ID'); 
   }
 
-  const adultReq= ticketTypeRequests.find(req => req.getTicketType() === 'ADULT');
-  const adultCount = adultReq ? adultReq.getNoOfTickets() : 0;
+  // Get aggregated ticket counts
+  const ticketCounts = ReqAgg.agg(ticketTypeRequests);
 
-  const chReq= ticketTypeRequests.find(req => req.getTicketType() === 'CHILD');
-  const chCount = chReq ? chReq.getNoOfTickets() : 0;
-
-  const infReq= ticketTypeRequests.find(req => req.getTicketType() === 'INFANT');
-  const infCount = infReq ? infReq.getNoOfTickets() : 0;
+  
+  const adultCount = ticketCounts.adult;
+  const chCount = ticketCounts.child;
+  const infCount = ticketCounts.infant;
 
 
   // Check for valid account IDs
