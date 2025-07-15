@@ -81,4 +81,34 @@ describe('TicketService.purchaseTickets', ()=>{
     expect(spyReserve).toHaveBeenCalledWith(123, 3);
     })
 
+    // Failure case for only child and infant
+    it('Test for only child and infant tickets',()=>{
+        const service = new TicketService();
+        const requests = [
+            new TicketTypeRequest('CHILD', 2),
+            new TicketTypeRequest('INFANT', 1)
+
+        ];
+        expect(() => {
+            service.purchaseTickets(123, ...requests);
+        }).toThrow(InvalidPurchaseException);
+    })
+
+    // Failure case only child
+    it('Test for only child tickets',()=>{
+        const service = new TicketService();
+        const req= new TicketTypeRequest('CHILD', 1);
+        expect(() => {
+            service.purchaseTickets(2, req);
+        }).toThrow(InvalidPurchaseException);
+    })
+    // Failure case only infant
+    it('Test for only infant tickets',()=>{
+        const service = new TicketService();
+        const req= new TicketTypeRequest('INFANT', 1);
+        expect(() => {
+            service.purchaseTickets(3, req);
+        }).toThrow(InvalidPurchaseException);
+    })
+
 })
