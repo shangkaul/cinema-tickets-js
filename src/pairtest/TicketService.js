@@ -13,16 +13,13 @@ import InvalidPurchaseException from './lib/InvalidPurchaseException.js';
 import TicketPaymentService from '../thirdparty/paymentgateway/TicketPaymentService.js';
 import SeatReservationService from '../thirdparty/seatbooking/SeatReservationService.js';
 
+import prices from './config/prices.js';
+
 export default class TicketService {
   /**
    * Should only have private methods other than the one below.
    */
-
-  static #ADULT_PRICE=25;
-  static #CHILD_PRICE=15;
-  static #INFANT_PRICE=0;
   
-
   purchaseTickets(accountId, ...ticketTypeRequests) {
   /**
   * Attempts to purchase tickets for a given account.
@@ -63,9 +60,9 @@ export default class TicketService {
   if ((adultCount+chCount+infCount) >25)
     throw new InvalidPurchaseException("Cannot but more than 25 tickets in a single transaction.");
 
-  const amt= (adultCount * TicketService.#ADULT_PRICE)
-             + (chCount * TicketService.#CHILD_PRICE)
-             + (infCount * TicketService.#INFANT_PRICE);
+  const amt= (adultCount * prices.ADULT)
+             + (chCount * prices.CHILD)
+             + (infCount * prices.INFANT);
   const seats= adultCount + chCount;
   
   // Call ticket payment and seat reservation services.
