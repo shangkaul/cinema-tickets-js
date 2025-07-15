@@ -15,6 +15,7 @@ import SeatReservationService from '../thirdparty/seatbooking/SeatReservationSer
 
 import prices from './config/prices.js';
 import ReqAgg from './helpers/reqAgg.js';
+import BusinessRuleValidator from './helpers/BusinessRuleValidator.js';
 
 export default class TicketService {
   /**
@@ -47,20 +48,10 @@ export default class TicketService {
   if (adultCount<1)
     throw new InvalidPurchaseException("Minimum 1 adult is required.");
 
-  // Check if any of the counts are negative
-  if (chCount < 0 || infCount < 0) {
-  throw new InvalidPurchaseException('Ticket count must be zero or positive');
-}
+  // Validate business rules
+  BusinessRuleValidator.validate(ticketCounts);
 
- // Did not add a check for decimat counts (fractions) since that is already validated in the TicketTypeRequest class. 
-
-  // Check for total tickets capped at 25.
-  // Here we assume infant tickets are also counted in the 25 limit.
-  // Although they are not allocated seats but still counted as a ticket.
-
-  if ((adultCount+chCount+infCount) >25)
-    throw new InvalidPurchaseException("Cannot but more than 25 tickets in a single transaction.");
-
+  
   const amt= (adultCount * prices.ADULT)
              + (chCount * prices.CHILD)
              + (infCount * prices.INFANT);
