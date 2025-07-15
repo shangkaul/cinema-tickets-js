@@ -9,13 +9,40 @@ npm test
 */
 
 
-import TicketService from "../src/pairtest/TicketService";
-import TicketTypeRequest from "../src/pairtest/lib/InvalidPurchaseException";
-import InvalidPurchaseException from "../src/pairtest/lib/TicketTypeRequest";
+import TicketService from "../src/pairtest/TicketService.js";
+import InvalidPurchaseException from "../src/pairtest/lib/InvalidPurchaseException.js";
+import TicketTypeRequest from "../src/pairtest/lib/TicketTypeRequest.js";
+import TicketPaymentService from '../src/thirdparty/paymentgateway/TicketPaymentService.js';
+import SeatReservationService from '../src/thirdparty/seatbooking/SeatReservationService.js';
+
 
 
 describe('TicketService.purchaseTickets', ()=>{
+
+    //Create mock for TicketPaymentService
+    let spyPay;
+    let spyReserve;
+    
+    beforeEach(() => {
+        // Mocking the TicketPaymentService and SeatReservationService methods
+        spyPay = jest.spyOn(TicketPaymentService.prototype, 'makePayment').mockImplementation(() => {});
+        spyReserve = jest.spyOn(SeatReservationService.prototype, 'reserveSeat').mockImplementation(() => {});
+    });
+    
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    // Simple success case - Happy Path
     it('Test for single adult reservation',()=>{
-        //Test to be written
+        const service = new TicketService();
+        const req = new TicketTypeRequest('ADULT', 1);
+
+        service.purchaseTickets(1, req);
+
+        expect(spyPay).toHaveBeenCalledWith(1, 25);
+        expect(spyReserve).toHaveBeenCalledWith(1, 1);
     })
+
+
 })
