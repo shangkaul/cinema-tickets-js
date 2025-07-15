@@ -43,3 +43,5 @@ Thumbs.db
 *.tgz
 *.gz
 *.zip
+
+.history/
