@@ -38,11 +38,19 @@ export default class TicketService {
   const adultReq= ticketTypeRequests.find(req => req.getTicketType() === 'ADULT');
   const adultCount = adultReq ? adultReq.getNoOfTickets() : 0;
 
+  const chReq= ticketTypeRequests.find(req => req.getTicketType() === 'CHILD');
+  const chCount = chReq ? chReq.getNoOfTickets() : 0;
+
+  const infReq= ticketTypeRequests.find(req => req.getTicketType() === 'INFANT');
+  const infCount = infReq ? infReq.getNoOfTickets() : 0;
+
   if (adultCount<1)
     throw new InvalidPurchaseException("Minimum 1 adult is required.")
 
-  const amt= adultCount * TicketService.#ADULT_PRICE;
-  const seats= adultCount;
+  const amt= (adultCount * TicketService.#ADULT_PRICE)
+             + (chCount * TicketService.#CHILD_PRICE)
+             + (infCount * TicketService.#INFANT_PRICE);
+  const seats= adultCount + chCount;
   
   // Call ticket payment and seat reservation services.
   new TicketPaymentService().makePayment(accountId, amt);

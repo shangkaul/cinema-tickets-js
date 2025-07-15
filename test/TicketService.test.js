@@ -38,11 +38,47 @@ describe('TicketService.purchaseTickets', ()=>{
         const service = new TicketService();
         const req = new TicketTypeRequest('ADULT', 1);
 
-        service.purchaseTickets(1, req);
+        service.purchaseTickets(123, req);
 
-        expect(spyPay).toHaveBeenCalledWith(1, 25);
-        expect(spyReserve).toHaveBeenCalledWith(1, 1);
+        expect(spyPay).toHaveBeenCalledWith(123, 25);
+        expect(spyReserve).toHaveBeenCalledWith(123, 1);
+    })
+    // Input validation for accountId
+    it('Test for invalid accountId',()=>{
+        const service = new TicketService();
+        const req = new TicketTypeRequest('ADULT', 1);
+
+    // id=0
+    expect(() => {
+      service.purchaseTickets(0, req);
+    }).toThrow(InvalidPurchaseException);
+
+    // negative ID
+    expect(() => {
+      service.purchaseTickets(-5, req);
+    }).toThrow(InvalidPurchaseException);
+
+    // Non-numeric
+    expect(() => {
+      service.purchaseTickets('JohnD', req);
+    }).toThrow(InvalidPurchaseException);
+
     })
 
+    //Complex case with multiple ticket types
+    it('Test for multiple ticket types',()=>{
+        const service = new TicketService();
+        const requests = [
+            new TicketTypeRequest('ADULT', 2),
+            new TicketTypeRequest('CHILD', 1),
+            new TicketTypeRequest('INFANT', 1),
+    ];
+    service.purchaseTickets(123, ...requests);
+
+    // 2×£25 + 1×£15 + 1×£0 = £65
+    expect(spyPay).toHaveBeenCalledWith(123, 65);
+    // 2 adult, 1 child infant not counted.= 2 + 1 = 3
+    expect(spyReserve).toHaveBeenCalledWith(123, 3);
+    })
 
 })
