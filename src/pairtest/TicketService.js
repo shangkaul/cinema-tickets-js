@@ -48,5 +48,9 @@ export default class TicketService {
   new TicketPaymentService().makePayment(accountId, amt);
   new SeatReservationService().reserveSeat(accountId, seats);
 
+  return{
+    totalCost:amt,
+    totalSeats: seats
+  }
 }
 }
