@@ -16,6 +16,7 @@ import SeatReservationService from '../thirdparty/seatbooking/SeatReservationSer
 import prices from './config/prices.js';
 import ReqAgg from './helpers/reqAgg.js';
 import BusinessRuleValidator from './helpers/BusinessRuleValidator.js';
+import PriceCalculator from './helpers/priceCalculator.js';
 
 export default class TicketService {
   /**
@@ -51,10 +52,8 @@ export default class TicketService {
   // Validate business rules
   BusinessRuleValidator.validate(ticketCounts);
 
-  
-  const amt= (adultCount * prices.ADULT)
-             + (chCount * prices.CHILD)
-             + (infCount * prices.INFANT);
+
+  const amt= PriceCalculator.totalCost(ticketCounts);
   const seats= adultCount + chCount;
   
   // Call ticket payment and seat reservation services.
