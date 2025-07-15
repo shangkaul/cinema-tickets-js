@@ -44,8 +44,16 @@ export default class TicketService {
   const infReq= ticketTypeRequests.find(req => req.getTicketType() === 'INFANT');
   const infCount = infReq ? infReq.getNoOfTickets() : 0;
 
+  // Check for valid account IDs
   if (adultCount<1)
-    throw new InvalidPurchaseException("Minimum 1 adult is required.")
+    throw new InvalidPurchaseException("Minimum 1 adult is required.");
+
+  // Check for total tickets capped at 25.
+  // Here we assume infant tickets are also counted in the 25 limit.
+  // Although they are not allocated seats but still counted as a ticket.
+
+  if ((adultCount+chCount+infCount) >25)
+    throw new InvalidPurchaseException("Cannot but more than 25 tickets in a single transaction.");
 
   const amt= (adultCount * TicketService.#ADULT_PRICE)
              + (chCount * TicketService.#CHILD_PRICE)

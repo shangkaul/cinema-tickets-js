@@ -111,4 +111,51 @@ describe('TicketService.purchaseTickets', ()=>{
         }).toThrow(InvalidPurchaseException);
     })
 
+    // Failure case for ticket # exceeds 25
+    it('Test for ticket count exceeds 25',()=>{
+        const service = new TicketService();
+        const requests= [
+            new TicketTypeRequest('ADULT', 20),
+            new TicketTypeRequest('CHILD', 6)
+        ];
+        expect(() => {
+            service.purchaseTickets(123, ...requests);
+        }).toThrow(InvalidPurchaseException);
+    })
+    //Allows 25 tickets 
+    it('Test for 25 tickets',()=>{
+        const service = new TicketService();
+        const req = new TicketTypeRequest('ADULT', 25);
+        service.purchaseTickets(123, req);
+        expect(spyPay).toHaveBeenCalledWith(123, 25 * 25);
+        expect(spyReserve).toHaveBeenCalledWith(123, 25);
+    })
+
+    // 25 mixed tickets
+    it('Test for 25 mixed tickets',()=>{
+    const service = new TicketService();
+    const requests = [
+        new TicketTypeRequest('ADULT', 10),
+        new TicketTypeRequest('CHILD', 14),
+        new TicketTypeRequest('INFANT', 1) // Assuming infant not charged but still counted in 25 ticket cap.
+    ];
+    service.purchaseTickets(123, ...requests);
+    // 10×£25 + 15×£14 + 1×£0 = £460
+    expect(spyPay).toHaveBeenCalledWith(123, 10 * 25 + 14 * 15 + 1 * 0);
+    // 10 adult, 14 child, 1 infant = 10 + 14 = 24
+    expect(spyReserve).toHaveBeenCalledWith(123, 24);
+    })
+
+    // Infant count 25 cap
+    it('Test for infant count 25 cap',()=>{
+        const service = new TicketService();
+        const requests = [
+            new TicketTypeRequest('ADULT', 10),
+            new TicketTypeRequest('INFANT', 20)
+        ];
+        expect(() => {
+            service.purchaseTickets(123, ...requests);
+        }).toThrow(InvalidPurchaseException);
+    })
+
 })
