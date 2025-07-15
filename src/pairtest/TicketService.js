@@ -24,6 +24,22 @@ export default class TicketService {
    * Should only have private methods other than the one below.
    */
   
+  constructor({
+    paymentService     = new TicketPaymentService(),
+    reservationService = new SeatReservationService(),
+    aggregator         = ReqAgg,
+    validator          = BusinessRuleValidator,
+    pricing            = PriceCalculator,
+    seating            = SeatCalc,
+  } = {}) {
+    this.paymentService     = paymentService;
+    this.reservationService = reservationService;
+    this.aggregator         = aggregator;
+    this.validator          = validator;
+    this.pricing            = pricing;
+    this.seating            = seating;
+  }
+
   purchaseTickets(accountId, ...ticketTypeRequests) {
   /**
   * Attempts to purchase tickets for a given account.
@@ -38,14 +54,14 @@ export default class TicketService {
   }
 
   // Get aggregated ticket counts
-  const ticketCounts = ReqAgg.agg(ticketTypeRequests);
+  const ticketCounts = this.aggregator.agg(ticketTypeRequests);
 
   // Validate business rules
-  BusinessRuleValidator.validate(ticketCounts);
+  this.validator.validate(ticketCounts);
 
  // Calculate total cost and number of seats
-  const amt= PriceCalculator.totalCost(ticketCounts);
-  const seats= SeatCalc.totalSeats(ticketCounts);
+  const amt= this.pricing.totalCost(ticketCounts);
+  const seats= this.seating.totalSeats(ticketCounts);
   
   // Call ticket payment and seat reservation services
   new TicketPaymentService().makePayment(accountId, amt);
