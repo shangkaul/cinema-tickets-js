@@ -158,4 +158,28 @@ describe('TicketService.purchaseTickets', ()=>{
         }).toThrow(InvalidPurchaseException);
     })
 
+    // Input validation for ticket count
+    it('Test for invalid ticket count',()=>{
+        const service = new TicketService();
+        const req = new TicketTypeRequest('ADULT', -1);
+        req.getNoOfTickets=()=>-1; // Mocking the method to return invalid count
+        expect(() => {  
+            service.purchaseTickets(123, req);
+        }).toThrow(InvalidPurchaseException);
+
+    })
+    
+    // Zero count tickets
+    it('Test for zero count tickets',()=>{
+        const service = new TicketService();
+       const requests = [
+            new TicketTypeRequest('ADULT', 0),
+            new TicketTypeRequest('CHILD', 0),
+            new TicketTypeRequest('INFANT', 0)
+        ];
+        expect(() => {
+            service.purchaseTickets(123, ...requests);
+        }).toThrow(InvalidPurchaseException);
+    })
+
 })
