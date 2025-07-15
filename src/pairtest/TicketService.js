@@ -44,9 +44,17 @@ export default class TicketService {
   const infReq= ticketTypeRequests.find(req => req.getTicketType() === 'INFANT');
   const infCount = infReq ? infReq.getNoOfTickets() : 0;
 
+
   // Check for valid account IDs
   if (adultCount<1)
     throw new InvalidPurchaseException("Minimum 1 adult is required.");
+
+  // Check if any of the counts are negative
+  if (chCount < 0 || infCount < 0) {
+  throw new InvalidPurchaseException('Ticket count must be zero or positive');
+}
+
+ // Did not add a check for decimat counts (fractions) since that is already validated in the TicketTypeRequest class. 
 
   // Check for total tickets capped at 25.
   // Here we assume infant tickets are also counted in the 25 limit.
@@ -64,6 +72,8 @@ export default class TicketService {
   new TicketPaymentService().makePayment(accountId, amt);
   new SeatReservationService().reserveSeat(accountId, seats);
 
+  
+  // Added return object to print values in main js, DOES NOT MODIFY INTERFACE of the class.
   return{
     totalCost:amt,
     totalSeats: seats

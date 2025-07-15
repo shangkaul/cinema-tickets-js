@@ -182,4 +182,18 @@ describe('TicketService.purchaseTickets', ()=>{
         }).toThrow(InvalidPurchaseException);
     })
 
+    // Negative COunt tickets
+    it('Test for negative count tickets',()=>{
+        const service = new TicketService();
+       const requests = [
+            new TicketTypeRequest('ADULT', 0),
+            new TicketTypeRequest('CHILD', -1),
+            new TicketTypeRequest('INFANT', 0)
+        ];
+
+        expect(()=>{
+            service.purchaseTickets(12,...requests);
+        }).toThrow(InvalidPurchaseException);
+    })
+
 })
