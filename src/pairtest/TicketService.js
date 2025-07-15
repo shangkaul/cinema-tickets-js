@@ -14,12 +14,32 @@ import TicketPaymentService from '../thirdparty/paymentgateway/TicketPaymentServ
 import SeatReservationService from '../thirdparty/seatbooking/SeatReservationService.js';
 
 import prices from './config/prices.js';
+import ReqAgg from './helpers/reqAgg.js';
+import BusinessRuleValidator from './helpers/BusinessRuleValidator.js';
+import PriceCalculator from './helpers/priceCalculator.js';
+import SeatCalc from './helpers/SeatCalc.js';
 
 export default class TicketService {
   /**
    * Should only have private methods other than the one below.
    */
   
+  constructor({
+    paymentService     = new TicketPaymentService(),
+    reservationService = new SeatReservationService(),
+    aggregator         = ReqAgg,
+    validator          = BusinessRuleValidator,
+    pricing            = PriceCalculator,
+    seating            = SeatCalc,
+  } = {}) {
+    this.paymentService     = paymentService;
+    this.reservationService = reservationService;
+    this.aggregator         = aggregator;
+    this.validator          = validator;
+    this.pricing            = pricing;
+    this.seating            = seating;
+  }
+
   purchaseTickets(accountId, ...ticketTypeRequests) {
   /**
   * Attempts to purchase tickets for a given account.
@@ -28,44 +48,22 @@ export default class TicketService {
   * @param {...TicketTypeRequest} ticketTypeRequests - One or more ticket type requests specifying the type and quantity of tickets.
   * @throws {InvalidPurchaseException} If the purchase request is invalid according to business rules.
   */
+  // Validate accountId
     if ((!Number.isInteger(accountId)) || (accountId <= 0)){
       throw new InvalidPurchaseException('Invalid account ID'); 
   }
 
-  const adultReq= ticketTypeRequests.find(req => req.getTicketType() === 'ADULT');
-  const adultCount = adultReq ? adultReq.getNoOfTickets() : 0;
+  // Get aggregated ticket counts
+  const ticketCounts = this.aggregator.agg(ticketTypeRequests);
 
-  const chReq= ticketTypeRequests.find(req => req.getTicketType() === 'CHILD');
-  const chCount = chReq ? chReq.getNoOfTickets() : 0;
+  // Validate business rules
+  this.validator.validate(ticketCounts);
 
-  const infReq= ticketTypeRequests.find(req => req.getTicketType() === 'INFANT');
-  const infCount = infReq ? infReq.getNoOfTickets() : 0;
-
-
-  // Check for valid account IDs
-  if (adultCount<1)
-    throw new InvalidPurchaseException("Minimum 1 adult is required.");
-
-  // Check if any of the counts are negative
-  if (chCount < 0 || infCount < 0) {
-  throw new InvalidPurchaseException('Ticket count must be zero or positive');
-}
-
- // Did not add a check for decimat counts (fractions) since that is already validated in the TicketTypeRequest class. 
-
-  // Check for total tickets capped at 25.
-  // Here we assume infant tickets are also counted in the 25 limit.
-  // Although they are not allocated seats but still counted as a ticket.
-
-  if ((adultCount+chCount+infCount) >25)
-    throw new InvalidPurchaseException("Cannot but more than 25 tickets in a single transaction.");
-
-  const amt= (adultCount * prices.ADULT)
-             + (chCount * prices.CHILD)
-             + (infCount * prices.INFANT);
-  const seats= adultCount + chCount;
+ // Calculate total cost and number of seats
+  const amt= this.pricing.totalCost(ticketCounts);
+  const seats= this.seating.totalSeats(ticketCounts);
   
-  // Call ticket payment and seat reservation services.
+  // Call ticket payment and seat reservation services
   new TicketPaymentService().makePayment(accountId, amt);
   new SeatReservationService().reserveSeat(accountId, seats);
 
